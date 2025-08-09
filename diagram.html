@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Streaming CDC → Kafka → Flink → DW (Flex • Arrows Working)</title>
+<title>Streaming CDC → Kafka → Flink → DW (Flex • Bigger • Triple Spacing)</title>
 <style>
   :root{
     --bg:#0f1320; --ink:#eaf3ff; --b:#2a3b5a;
@@ -10,22 +10,26 @@
     --blue:#00c2ff; --green:#22c55e; --orange:#f97316; --purple:#a855f7; --teal:#79e0ff;
   }
   html,body{margin:0;background:var(--bg);color:var(--ink);font:600 14px/1.4 Inter,system-ui,Segoe UI,Roboto,Arial}
-  .canvas{position:relative; width:min(1200px,96vw); margin:24px auto; padding:28px; border-radius:26px; background:#0c101b; box-shadow:0 28px 70px rgba(0,0,0,.55)}
-  .title{font-size:28px; font-weight:900; margin:0 0 12px 4px}
 
-  .rows{position:relative; z-index:2; display:flex; flex-direction:column; gap:28px}
-  .row{display:flex; flex-wrap:nowrap; justify-content:center; gap:28px}
+  /* Bigger canvas to contain everything */
+  .canvas{position:relative; width:min(2000px,98vw); margin:32px auto; padding:42px; border-radius:26px; background:#0c101b; box-shadow:0 28px 70px rgba(0,0,0,.55)}
+  .title{font-size:32px; font-weight:900; margin:0 0 18px 6px}
 
-  .node{min-width:190px; height:60px; display:flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:16px; background:linear-gradient(180deg,var(--card1),var(--card2)); border:1px solid var(--b); box-shadow:0 12px 30px rgba(0,0,0,.45); font-weight:800}
-  .cyl{height:82px; background:#0e1526; border:1px solid #314365; border-radius:64px}
+  /* Triple the vertical spacing between rows (previously ~28px) */
+  .rows{position:relative; z-index:2; display:flex; flex-direction:column; gap:84px}
+  /* widen horizontal gaps slightly (previously 28px) */
+  .row{display:flex; flex-wrap:nowrap; justify-content:center; gap:42px}
+
+  .node{min-width:210px; height:64px; display:flex; align-items:center; justify-content:center; padding:12px 16px; border-radius:16px; background:linear-gradient(180deg,var(--card1),var(--card2)); border:1px solid var(--b); box-shadow:0 16px 36px rgba(0,0,0,.45); font-weight:800}
+  .cyl{height:88px; background:#0e1526; border:1px solid #314365; border-radius:64px}
   .pill{border-radius:999px}
 
-  /* SVG overlay sits ABOVE background but BELOW nodes */
+  /* SVG overlay sized by JS to full canvas */
   svg.wires{position:absolute; left:0; top:0; z-index:1; pointer-events:none}
-  .wire{fill:none; stroke-linecap:round; stroke-width:2.8; stroke-dasharray:8 10; filter:drop-shadow(0 0 4px rgba(0,0,0,.35))}
-  @keyframes flow{to{stroke-dashoffset:-400}} .flow{animation:flow 1.1s linear infinite}
+  .wire{fill:none; stroke-linecap:round; stroke-width:3; stroke-dasharray:10 12; filter:drop-shadow(0 0 4px rgba(0,0,0,.35))}
+  @keyframes flow{to{stroke-dashoffset:-500}} .flow{animation:flow 1.1s linear infinite}
   .blue{stroke:var(--blue)} .green{stroke:var(--green)} .orange{stroke:var(--orange)} .purple{stroke:var(--purple)} .teal{stroke:var(--teal)}
-  @keyframes pulse{0%,100%{r:2; opacity:.2} 40%{r:5; opacity:1}} .flash{animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{r:2; opacity:.25} 40%{r:5.5; opacity:1}} .flash{animation:pulse 1.1s ease-in-out infinite}
 </style>
 </head>
 <body>
@@ -33,16 +37,19 @@
   <div class="title">Streaming CDC → Kafka → Flink → DW</div>
 
   <div class="rows" id="rows">
+    <!-- Row 1: DBs -->
     <div class="row" id="r1">
       <div class="node cyl" id="db1">Postgres DB1</div>
       <div class="node cyl" id="db2">Postgres DB2</div>
       <div class="node cyl" id="db3">Postgres DB3</div>
     </div>
+    <!-- Row 2: CDC -->
     <div class="row" id="r2">
       <div class="node" id="cdc1">CDC Task 1</div>
       <div class="node" id="cdc2">CDC Task 2</div>
       <div class="node" id="cdc3">CDC Task 3</div>
     </div>
+    <!-- Row 3: Topics -->
     <div class="row" id="r3">
       <div class="node pill" id="res1">Resource 1</div>
       <div class="node pill" id="res2">Resource 2</div>
@@ -52,25 +59,27 @@
       <div class="node pill" id="res6">6</div>
       <div class="node pill" id="res7">7</div>
     </div>
+    <!-- Row 4: Jobs -->
     <div class="row" id="r4">
       <div class="node" id="job1">Job 1</div>
       <div class="node" id="job2">Job 2</div>
       <div class="node" id="job3">Job 3</div>
       <div class="node" id="job4">Job 4</div>
     </div>
+    <!-- Row 5: Reports -->
     <div class="row" id="r5">
       <div class="node pill" id="rep1">Report 1</div>
       <div class="node pill" id="rep2">Report 2</div>
       <div class="node pill" id="rep3">Report 3</div>
       <div class="node pill" id="rep4">Report 4</div>
     </div>
+    <!-- Row 6: Sink & DW -->
     <div class="row" id="r6">
-      <div class="node" id="sink" style="min-width:280px">Kafka Connector Sink</div>
-      <div class="node cyl" id="dw" style="min-width:240px">Data Warehouse</div>
+      <div class="node" id="sink" style="min-width:320px">Kafka Connector Sink</div>
+      <div class="node cyl" id="dw" style="min-width:260px">Data Warehouse</div>
     </div>
   </div>
 
-  <!-- SVG overlay (sized via JS to exact canvas size) -->
   <svg class="wires" id="wires"></svg>
 </div>
 <script>
@@ -84,70 +93,56 @@
     svg.setAttribute('height', canvas.clientHeight);
     svg.setAttribute('viewBox', `0 0 ${canvas.clientWidth} ${canvas.clientHeight}`);
   }
-
   function ensureMarkers(){
     const defs=document.createElementNS(svgNS,'defs');
     svg.appendChild(defs);
     const colors={blue:'#00c2ff',green:'#22c55e',orange:'#f97316',purple:'#a855f7',teal:'#79e0ff'};
     Object.entries(colors).forEach(([name,hex])=>{
       const m=document.createElementNS(svgNS,'marker');
-      m.setAttribute('id',`m-${name}`);
-      m.setAttribute('viewBox','0 0 10 10');
+      m.setAttribute('id',`m-${name}`); m.setAttribute('viewBox','0 0 10 10');
       m.setAttribute('refX','8'); m.setAttribute('refY','5');
-      m.setAttribute('markerWidth','8'); m.setAttribute('markerHeight','8');
+      m.setAttribute('markerWidth','10'); m.setAttribute('markerHeight','10');
       m.setAttribute('orient','auto');
-      const p=document.createElementNS(svgNS,'path');
-      p.setAttribute('d','M0,0 L10,5 L0,10 Z'); p.setAttribute('fill',hex);
+      const p=document.createElementNS(svgNS,'path'); p.setAttribute('d','M0,0 L10,5 L0,10 Z'); p.setAttribute('fill',hex);
       m.appendChild(p); defs.appendChild(m);
     });
   }
+  const cssColor=(name)=>getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+  const centerBottom=(id)=>{const r=document.getElementById(id).getBoundingClientRect(); const c=canvas.getBoundingClientRect(); return {x:r.left+r.width/2-c.left, y:r.bottom-c.top};};
+  const centerTop=(id)=>{const r=document.getElementById(id).getBoundingClientRect(); const c=canvas.getBoundingClientRect(); return {x:r.left+r.width/2-c.left, y:r.top-c.top};};
 
-  function midBottom(el){ const r=el.getBoundingClientRect(); const c=canvas.getBoundingClientRect(); return {x:r.left + r.width/2 - c.left, y:r.bottom - c.top}; }
-  function midTop(el){ const r=el.getBoundingClientRect(); const c=canvas.getBoundingClientRect(); return {x:r.left + r.width/2 - c.left, y:r.top - c.top}; }
-
-  function addPath(fromId,toId,color){
-    const a=midBottom(document.getElementById(fromId));
-    const b=midTop(document.getElementById(toId));
-    const cx=(a.x+b.x)/2; // smooth vertical S-curve
+  function drawArrow(aId,bId,color){
+    const a=centerBottom(aId), b=centerTop(bId); const cx=(a.x+b.x)/2;
     const path=document.createElementNS(svgNS,'path');
     path.setAttribute('d',`M${a.x},${a.y} C ${cx},${a.y} ${cx},${b.y} ${b.x},${b.y}`);
     path.setAttribute('class',`wire ${color} flow`);
     path.setAttribute('marker-end',`url(#m-${color})`);
     svg.appendChild(path);
-    const dot=document.createElementNS(svgNS,'circle');
-    dot.setAttribute('cx',b.x); dot.setAttribute('cy',b.y); dot.setAttribute('r','3');
-    const clr=getComputedStyle(document.documentElement).getPropertyValue(`--${color}`);
-    dot.setAttribute('fill',clr); dot.setAttribute('class','flash'); svg.appendChild(dot);
+    const dot=document.createElementNS(svgNS,'circle'); dot.setAttribute('cx',b.x); dot.setAttribute('cy',b.y); dot.setAttribute('r','3'); dot.setAttribute('fill',cssColor(color)); dot.setAttribute('class','flash'); svg.appendChild(dot);
   }
 
-  function draw(){
-    svg.innerHTML='';
-    sizeSVG(); ensureMarkers();
+  function drawAll(){
+    svg.innerHTML=''; sizeSVG(); ensureMarkers();
     // DB → CDC
-    addPath('db1','cdc1','blue');
-    addPath('db2','cdc2','green');
-    addPath('db3','cdc3','orange');
+    drawArrow('db1','cdc1','blue');
+    drawArrow('db2','cdc2','green');
+    drawArrow('db3','cdc3','orange');
     // CDC → Topics
-    addPath('cdc1','res1','blue'); addPath('cdc1','res2','blue');
-    addPath('cdc2','res3','green'); addPath('cdc2','res4','green');
-    addPath('cdc3','res5','orange'); addPath('cdc3','res6','orange'); addPath('cdc3','res7','orange');
+    drawArrow('cdc1','res1','blue'); drawArrow('cdc1','res2','blue');
+    drawArrow('cdc2','res3','green'); drawArrow('cdc2','res4','green');
+    drawArrow('cdc3','res5','orange'); drawArrow('cdc3','res6','orange'); drawArrow('cdc3','res7','orange');
     // Topics → Jobs
-    addPath('res1','job1','blue'); addPath('res2','job2','green'); addPath('res5','job3','orange'); addPath('res7','job4','purple');
+    drawArrow('res1','job1','blue'); drawArrow('res2','job2','green'); drawArrow('res5','job3','orange'); drawArrow('res7','job4','purple');
     // Jobs → Reports
-    addPath('job1','rep1','blue'); addPath('job2','rep2','green'); addPath('job3','rep3','orange'); addPath('job4','rep4','purple');
+    drawArrow('job1','rep1','blue'); drawArrow('job2','rep2','green'); drawArrow('job3','rep3','orange'); drawArrow('job4','rep4','purple');
     // Reports → Sink
-    addPath('rep1','sink','blue'); addPath('rep2','sink','green'); addPath('rep3','sink','orange'); addPath('rep4','sink','purple');
+    drawArrow('rep1','sink','blue'); drawArrow('rep2','sink','green'); drawArrow('rep3','sink','orange'); drawArrow('rep4','sink','purple');
     // Sink → DW
-    addPath('sink','dw','teal');
+    drawArrow('sink','dw','teal');
   }
 
-  // Draw after layout settles
-  function afterLayout(){
-    requestAnimationFrame(()=>requestAnimationFrame(draw));
-  }
-
-  window.addEventListener('load', afterLayout);
-  window.addEventListener('resize', afterLayout);
+  function afterLayout(){ requestAnimationFrame(()=>requestAnimationFrame(drawAll)); }
+  window.addEventListener('load',afterLayout); window.addEventListener('resize',afterLayout);
 })();
 </script>
 </body>
