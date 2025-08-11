@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>PostgreSQL Publications → Subscriptions (3 → 1 Funnel) → Metabase</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1320;
+      --ink: #eaf3ff;
+      --b: #EEEEEE;
+      --card1: #0D98BA;
+      --card2: #00CEC8;
+      --blue: #00c2ff;
+      --green: #22c55e;
+      --orange: #f97316;
+      --purple: #a855f7;
+      --teal: #79e0ff;
+    }
+
+    html,
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 600 14px/1.4 'Open Sans', Inter, system-ui, Segoe UI, Roboto, Arial;
+    }
+
+    /* Bigger canvas to contain everything */
+    .canvas {
+      position: relative;
+      width: min(1800px, 98vw);
+      margin: 32px auto;
+      padding: 48px;
+      border-radius: 28px;
+      background: #505050;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, .55)
+    }
+
+    .title {
+      font-size: 34px;
+      font-weight: 900;
+      margin: 0 0 22px 6px;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Rows (batched) */
+    .rows {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 96px
+    }
+
+    .row {
+      position: relative;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: center;
+      gap: 48px
+    }
+
+    .node {
+      font-size: 20px;
+      min-width: 220px;
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--card1), var(--card2));
+      border: 5px solid var(--b);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, .45);
+      font-weight: 800
+    }
+
+    .cyl {
+      height: 92px;
+      background: #000435;
+      border: 5px solid var(--b);
+      border-radius: 64px
+    }
+
+    .pill {
+      border-radius: 999px
+    }
+
+    /* SVG overlay sized by JS to full canvas */
+    svg.wires {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+      pointer-events: none
+    }
+
+    .wire {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 3;
+      stroke-dasharray: 10 12;
+      filter: drop-shadow(0 0 4px rgba(0, 0, 0, .35))
+    }
+
+    @keyframes flow {
+      to {
+        stroke-dashoffset: -520
+      }
+    }
+
+    .flow {
+      animation: flow 10s linear infinite
+    }
+
+    .blue {
+      stroke: var(--blue)
+    }
+
+    .green {
+      stroke: var(--green)
+    }
+
+    .orange {
+      stroke: var(--orange)
+    }
+
+    .purple {
+      stroke: var(--purple)
+    }
+
+    .teal {
+      stroke: var(--teal)
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        r: 2;
+        opacity: .25
+      }
+
+      40% {
+        r: 5.5;
+        opacity: 1
+      }
+    }
+
+    .flash {
+      animation: pulse 1.1s ease-in-out infinite
+    }
+  </style>
+</head>
+
+<body>
+  <div class="canvas" id="canvas">
+    <div class="title">Streaming CDC → Kafka → Flink → ClickHouse</div>
+
+    <div class="rows" id="rows">
+      <div class="row" id="r1">
+        <div class="node cyl" id="db1">PostgreSQL 1</div>
+        <div class="node cyl" id="db2">PostgreSQL 2</div>
+        <div class="node cyl" id="db3">PostgreSQL 3</div>
+      </div>
+
+      <div class="row" id="r2">
+        <div class="node" id="pub1">Schema 1 Publication</div>
+        <div class="node" id="pub2">Schema 2 Publication</div>
+        <div class="node" id="pub3">Schema 3 Publication</div>
+        <div class="node" id="pub4">Schema 4 Publication</div>
+        <div class="node" id="pub5">Schema 5 Publication</div>
+      </div>
+
+      <div class="row" id="r4">
+        <div class="node" id="sub1">Schema 1 Subscription</div>
+        <div class="node" id="sub2">Schema 2 Subscription</div>
+        <div class="node" id="sub3">Schema 3 Subscription</div>
+        <div class="node" id="sub4">Schema 4 Subscription</div>
+        <div class="node" id="sub5">Schema 5 Subscription</div>
+      </div>
+
+      <div class="row" id="r6">
+        <div class="node cyl" id="dbcentral" style="min-width:360px">PostgreSQL Central Replication</div>
+      </div>
+
+      <div class="row" id="r7">
+        <div class="node" id="metabase" style="min-width:300px">Metabase</div>
+      </div>
+    </div>
+
+    <svg class="wires" id="wires"></svg>
+  </div>
+  <script>
+    (function () {
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const canvas = document.getElementById('canvas');
+      const svg = document.getElementById('wires');
+
+      function sizeSVG() {
+        svg.setAttribute('width', canvas.clientWidth);
+        svg.setAttribute('height', canvas.clientHeight);
+        svg.setAttribute('viewBox', `0 0 ${canvas.clientWidth} ${canvas.clientHeight}`);
+      }
+      function ensureMarkers() {
+        const defs = document.createElementNS(svgNS, 'defs');
+        svg.appendChild(defs);
+        const colors = { blue: '#00c2ff', green: '#22c55e', orange: '#f97316', purple: '#a855f7', teal: '#79e0ff' };
+        Object.entries(colors).forEach(([name, hex]) => {
+          const m = document.createElementNS(svgNS, 'marker');
+          m.setAttribute('id', `m-${name}`); m.setAttribute('viewBox', '0 0 10 10');
+          m.setAttribute('refX', '8'); m.setAttribute('refY', '5');
+          m.setAttribute('markerWidth', '10'); m.setAttribute('markerHeight', '10');
+          m.setAttribute('orient', 'auto');
+          const p = document.createElementNS(svgNS, 'path'); p.setAttribute('d', 'M0,0 L10,5 L0,10 Z'); p.setAttribute('fill', hex);
+          m.appendChild(p); defs.appendChild(m);
+        });
+      }
+      const cssColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+      const centerBottom = (id) => { const r = document.getElementById(id).getBoundingClientRect(); const c = canvas.getBoundingClientRect(); return { x: r.left + r.width / 2 - c.left, y: r.bottom - c.top }; };
+      const centerTop = (id) => { const r = document.getElementById(id).getBoundingClientRect(); const c = canvas.getBoundingClientRect(); return { x: r.left + r.width / 2 - c.left, y: r.top - c.top }; };
+
+      function drawArrow(aId, bId, color) {
+        const a = centerBottom(aId), b = centerTop(bId); const cx = (a.x + b.x) / 2;
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', `M${a.x},${a.y} C ${cx},${a.y} ${cx},${b.y} ${b.x},${b.y}`);
+        path.setAttribute('class', `wire ${color} flow`);
+        path.setAttribute('marker-end', `url(#m-${color})`);
+        svg.appendChild(path);
+        const dot = document.createElementNS(svgNS, 'circle'); dot.setAttribute('cx', b.x); dot.setAttribute('cy', b.y); dot.setAttribute('r', '3'); dot.setAttribute('fill', cssColor(color)); dot.setAttribute('class', 'flash'); svg.appendChild(dot);
+      }
+
+      function drawAll() {
+        svg.innerHTML = ''; sizeSVG(); ensureMarkers();
+        // DB → Pub
+        drawArrow('db1', 'pub1', 'blue');
+        drawArrow('db1', 'pub2', 'blue');
+        drawArrow('db2', 'pub3', 'green');
+        drawArrow('db3', 'pub4', 'orange');
+        drawArrow('db3', 'pub5', 'orange');
+        // Pub to Sup
+        drawArrow('pub1', 'sub1', 'blue');
+        drawArrow('pub2', 'sub2', 'blue');
+        drawArrow('pub3', 'sub3', 'green');
+        drawArrow('pub4', 'sub4', 'orange');
+        drawArrow('pub5', 'sub5', 'orange');
+        // Sub to Central DB
+        drawArrow('sub1', 'dbcentral', 'blue');
+        drawArrow('sub2', 'dbcentral', 'blue');
+        drawArrow('sub3', 'dbcentral', 'green');
+        drawArrow('sub4', 'dbcentral', 'orange');
+        drawArrow('sub5', 'dbcentral', 'orange');
+        // Central DB to Metabase
+        drawArrow('dbcentral', 'metabase', 'purple');
+      }
+
+      function afterLayout() { requestAnimationFrame(() => requestAnimationFrame(drawAll)); }
+      window.addEventListener('load', afterLayout); window.addEventListener('resize', afterLayout);
+    })();
+  </script>
+</body>
+
+</html>

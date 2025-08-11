@@ -17,6 +17,8 @@
       --orange: #f97316;
       --purple: #a855f7;
       --teal: #79e0ff;
+      --yellow: #FFDE21;
+      --red: #FF1744;
     }
 
     html,
@@ -151,6 +153,10 @@
 
     .teal {
       stroke: var(--teal)
+    }
+
+    .red {
+      stroke: var(--red)
     }
 
     @keyframes pulse {
@@ -288,7 +294,7 @@
       function ensureMarkers() {
         const defs = document.createElementNS(svgNS, 'defs');
         svg.appendChild(defs);
-        const colors = { blue: '#00c2ff', green: '#22c55e', orange: '#f97316', purple: '#a855f7', teal: '#79e0ff' };
+        const colors = { blue: '#00c2ff', green: '#22c55e', orange: '#f97316', purple: '#a855f7', teal: '#79e0ff', red:'#ff1744' };
         Object.entries(colors).forEach(([name, hex]) => {
           const m = document.createElementNS(svgNS, 'marker');
           m.setAttribute('id', `m-${name}`); m.setAttribute('viewBox', '0 0 10 10');
@@ -336,7 +342,7 @@
         // Reports → Sink
         drawArrow('rep1', 'sink', 'blue'); drawArrow('rep2', 'sink', 'green'); drawArrow('rep3', 'sink', 'orange'); drawArrow('rep4', 'sink', 'purple');
         // Sink → ClickHouse
-        drawArrow('sink', 'clickhouse', 'teal');
+        drawArrow('sink', 'clickhouse', 'red');
       }
 
       function afterLayout() { requestAnimationFrame(() => requestAnimationFrame(drawAll)); }
